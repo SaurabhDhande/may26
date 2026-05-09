@@ -5,8 +5,7 @@ pool:
   vmImage: ubuntu-latest
 
 variables:
-  dockerRegistry: docker.io
-  imageName: servicea
+  imageName: saurabhdhande/service-a
   tag: $(Build.BuildId)
 
 stages:
@@ -32,7 +31,7 @@ stages:
             inputs:
               command: buildAndPush
               containerRegistry: Dockethub
-              repository: saurabhdhande/$(imageName)
+              repository: $(imageName)
               dockerfile: $(Build.SourcesDirectory)/service-a/Dockerfile
               buildContext: $(Build.SourcesDirectory)/service-a
               tags: |
