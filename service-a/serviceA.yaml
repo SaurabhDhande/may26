@@ -24,7 +24,7 @@ stages:
             displayName: Login to ACR
             inputs:
               command: login
-              containerRegistry: my-acr-service-connection
+              containerRegistry: Dockethub
 
           - task: Docker@2
             displayName: Build and Push Image
@@ -32,7 +32,7 @@ stages:
               command: buildAndPush
               repository: $(imageName)
               dockerfile: Dockerfile
-              containerRegistry: my-acr-service-connection
+              containerRegistry: Dockethub
               tags: |
                 $(tag)
                 latest
