@@ -24,13 +24,13 @@ stages:
             displayName: Login to DockerHub
             inputs:
               command: login
-              containerRegistry: Dockethub
+              containerRegistry: dockerHub
 
           - task: Docker@2
             displayName: Build and Push Image
             inputs:
               command: buildAndPush
-              containerRegistry: Dockethub
+              containerRegistry: dockerHub
               repository: $(imageName)
               dockerfile: $(Build.SourcesDirectory)/service-a/Dockerfile
               buildContext: $(Build.SourcesDirectory)/service-a
