@@ -8,9 +8,20 @@ from flask import Flask, jsonify
 app = Flask(__name__)
 
 SERVICE_NAME = "service-a"
-SERVICE_B_URL = os.getenv("SERVICE_B_URL", "http://localhost:8001/data")
 PORT = int(os.getenv("PORT", "8000"))
 REQUEST_TIMEOUT_SECONDS = float(os.getenv("REQUEST_TIMEOUT_SECONDS", "3"))
+
+
+def get_service_b_candidates():
+    configured_url = os.getenv("SERVICE_B_URL")
+    if configured_url:
+        return [configured_url]
+
+    # Localhost works for local development, while the service DNS name works in Kubernetes.
+    return [
+        "http://localhost:8001/data",
+        "http://service-b:8001/data",
+    ]
 
 
 @app.get("/healthz")
@@ -36,33 +47,34 @@ def home():
 
 @app.get("/aggregate")
 def aggregate():
-    try:
-        response = requests.get(SERVICE_B_URL, timeout=REQUEST_TIMEOUT_SECONDS)
-        response.raise_for_status()
-        backend_payload = response.json()
-    except requests.RequestException as exc:
-        return (
-            jsonify(
+    last_error = None
+
+    for service_b_url in get_service_b_candidates():
+        try:
+            response = requests.get(service_b_url, timeout=REQUEST_TIMEOUT_SECONDS)
+            response.raise_for_status()
+            backend_payload = response.json()
+            return jsonify(
                 {
-                    "status": "error",
+                    "status": "ok",
                     "service": SERVICE_NAME,
-                    "message": "Could not reach service-b.",
-                    "service_b_url": SERVICE_B_URL,
-                    "error": str(exc),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "service_b_url": service_b_url,
+                    "backend_response": backend_payload,
                 }
-            ),
-            503,
-        )
+            )
+        except requests.RequestException as exc:
+            last_error = str(exc)
 
     return jsonify(
         {
-            "status": "ok",
+            "status": "error",
             "service": SERVICE_NAME,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "service_b_url": SERVICE_B_URL,
-            "backend_response": backend_payload,
+            "message": "Could not reach service-b.",
+            "service_b_candidates": get_service_b_candidates(),
+            "error": last_error,
         }
-    )
+    ), 503
 
 
 if __name__ == "__main__":
