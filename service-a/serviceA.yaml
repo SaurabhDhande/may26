@@ -1,39 +1,37 @@
 trigger:
-  - master
+  branches:
+    include:
+      - master
+  paths:
+    include:
+      - service-a/**
 
 pool:
   vmImage: ubuntu-latest
 
 variables:
-  imageName: saurabhdhande/service-a
-  tag: $(Build.BuildId)
+  imageRepository: saurabdhdhande/service-a
+  dockerfilePath: $(Build.SourcesDirectory)/service-a/Dockerfile
+  buildContext: $(Build.SourcesDirectory)/service-a
+  imageTag: $(Build.BuildId)
 
 stages:
   - stage: BuildAndPush
-    displayName: Build and Push Docker Image
-
+    displayName: Build and push service-a image
     jobs:
       - job: DockerBuildPush
-        displayName: Docker Build and Push
-
+        displayName: Build and push Docker image
         steps:
-
           - checkout: self
 
           - task: Docker@2
-            displayName: Login to DockerHub
-            inputs:
-              command: login
-              containerRegistry: dockerHub
-
-          - task: Docker@2
-            displayName: Build and Push Image
+            displayName: Build and push service-a
             inputs:
               command: buildAndPush
               containerRegistry: dockerHub
-              repository: $(imageName)
-              dockerfile: $(Build.SourcesDirectory)/service-a/Dockerfile
-              buildContext: $(Build.SourcesDirectory)/service-a
+              repository: $(imageRepository)
+              dockerfile: $(dockerfilePath)
+              buildContext: $(buildContext)
               tags: |
-                $(tag)
+                $(imageTag)
                 latest
