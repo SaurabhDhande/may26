@@ -10,7 +10,8 @@ pool:
   vmImage: ubuntu-latest
 
 variables:
-  imageRepository: saurabdhdhande/service-a
+  dockerRegistryServiceConnection: dockerHub
+  imageRepository: saurabhdhande/service-a
   dockerfilePath: $(Build.SourcesDirectory)/service-a/Dockerfile
   buildContext: $(Build.SourcesDirectory)/service-a
   imageTag: $(Build.BuildId)
@@ -28,7 +29,7 @@ stages:
             displayName: Build and push service-a
             inputs:
               command: buildAndPush
-              containerRegistry: dockerHub
+              containerRegistry: $(dockerRegistryServiceConnection)
               repository: $(imageRepository)
               dockerfile: $(dockerfilePath)
               buildContext: $(buildContext)
