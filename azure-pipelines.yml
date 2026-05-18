@@ -1,0 +1,25 @@
+trigger: none
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  URLS: |
+    https://google.com
+    https://github.com
+    https://httpbin.org/status/404
+
+steps:
+
+- script: echo Hello, world!
+  displayName: Run a one-line script
+
+- script: |
+
+    while IFS= read -r url
+    do
+      STATUS=$(curl -o /dev/null -s -w "%{http_code}" "$url")
+      echo "$url -> $STATUS"
+    done <<< "$(URLS)"
+
+  displayName: Check Website Status
